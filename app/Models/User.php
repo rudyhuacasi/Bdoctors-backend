@@ -41,4 +41,18 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    // relazione one to many con MedicalProfile
+
+    public function MedicalProfile()
+    {
+        return $this->hasMany(MedicalProfile::class);
+    }
+
+    // relazione one to many con MedicalProfile
+
+    public function Review()
+    {
+        return $this->hasMany(Review::class);
+    }
 }
