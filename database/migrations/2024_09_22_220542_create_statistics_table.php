@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('statistics', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('medical_profile_id')->constrained()->cascadeOnDelete();
+            $table->integer('messages_received')->default(0);
+            $table->integer('reviews_received')->default(0);
+            $table->dateTime('update_date');
             $table->timestamps();
         });
     }

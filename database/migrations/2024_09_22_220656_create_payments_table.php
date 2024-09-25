@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('medical_profile_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('sponsorship_id')->constrained()->cascadeOnDelete();
+            $table->decimal('price', 4,2);
+            $table->enum('stato', ['success', 'failed']);
+            $table->dateTime('payment_date');
             $table->timestamps();
         });
     }

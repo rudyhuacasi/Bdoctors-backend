@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('sponsorships', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('medical_profile_id')->constrained()->cascadeOnDelete();
+            $table->enum('package', ['24h', '72h', '144h']);
+            $table->dateTime('start_date');
+            $table->dateTime('end_date');
+            $table->enum('state', ['active', 'expired']);
             $table->timestamps();
         });
     }

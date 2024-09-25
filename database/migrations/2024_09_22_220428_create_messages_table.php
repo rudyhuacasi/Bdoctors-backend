@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('medical_profile_id')->constrained()->cascadeOnDelete();
+            $table->string('email_sender', 250);
+            $table->text('content');
+            $table->dateTime('data_sent');
             $table->timestamps();
         });
     }

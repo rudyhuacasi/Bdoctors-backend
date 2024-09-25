@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MedicalProfiles;
-use App\Http\Requests\StoreMedicalProfilesRequest;
-use App\Http\Requests\UpdateMedicalProfilesRequest;
+use App\Models\MedicalProfile;
+use App\Http\Requests\StoreMedicalProfileRequest;
+use App\Http\Requests\UpdateMedicalProfileRequest;
 
-class MedicalProfilesController extends Controller
+class MedicalProfileController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,7 +27,7 @@ class MedicalProfilesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMedicalProfilesRequest $request)
+    public function store(StoreMedicalProfileRequest $request)
     {
         //
     }
@@ -35,7 +35,7 @@ class MedicalProfilesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(MedicalProfiles $medicalProfiles)
+    public function show(MedicalProfile $medicalProfile)
     {
         //
     }
@@ -43,7 +43,7 @@ class MedicalProfilesController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(MedicalProfiles $medicalProfiles)
+    public function edit(MedicalProfile $medicalProfile)
     {
         //
     }
@@ -51,7 +51,7 @@ class MedicalProfilesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMedicalProfilesRequest $request, MedicalProfiles $medicalProfiles)
+    public function update(UpdateMedicalProfileRequest $request, MedicalProfile $medicalProfile)
     {
         //
     }
@@ -59,7 +59,7 @@ class MedicalProfilesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(MedicalProfiles $medicalProfiles)
+    public function destroy(MedicalProfile $medicalProfile)
     {
         //
     }

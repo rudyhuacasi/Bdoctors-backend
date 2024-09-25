@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('medical_profiles', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('slug', 50);
+            $table->string('cv');
+            $table->string('photograph');
+            $table->string('phone', 50);
+            $table->string('address'); 
             $table->timestamps();
         });
     }
