@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+use App\Models\Message;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -18,5 +20,14 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+
+        // fare la chiamata  a tutte le seeder
+        $this->call([
+            MedicalProfileSeeder::class,
+            SpecializationSeeder::class,  
+            MedicalSpecializationSeeder::class,
+            MessageSeeder::class,
+            SponsorshipSeeder::class,    
+        ]);
     }
 }
