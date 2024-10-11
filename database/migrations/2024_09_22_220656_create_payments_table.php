@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('medical_profile_id')->constrained()->cascadeOnDelete();
             $table->foreignId('sponsorship_id')->constrained()->cascadeOnDelete();
-            $table->decimal('price', 4,2);
-            $table->enum('stato', ['success', 'failed']);
-            $table->dateTime('payment_date');
+            $table->dateTime('start_date');
+            $table->dateTime('end_date');
+            $table->enum('state', ['active', 'expired']);
             $table->timestamps();
         });
     }
