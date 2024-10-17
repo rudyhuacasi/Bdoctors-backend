@@ -16,39 +16,33 @@ class MedicalProfile extends Model
     }
 
     // relazione one to many con MedicalProfile
-    public function Review()
+    public function reviews()
     {
         return $this->hasMany(Review::class);
     }
 
     // relazione one to many con MedicalSpecialization
-    public function MedicalSpecialization()
+    public function medicalspecializations()
     {
         return $this->hasMany(MedicalSpecialization::class);
     }
 
     // relazione one to many con MedicalProfile
-    public function Sponsorship()
-    {
-        return $this->hasMany(Sponsorship::class);
-    }
-
-    // relazione one to many con MedicalProfile
-    public function Payment()
+    public function payments()
     {
         return $this->hasMany(Payment::class);
     }
 
     // relazione one to many con Message
-    public function Message()
+    public function messages()
     {
         return $this->hasMany(Message::class);
     }
 
     // relazione one to many con Static
-    public function Static()
+    public function statistics()
     {
-        return $this->hasMany(Static::class);
+        return $this->hasMany(Statistic::class);
     }
 
 }
