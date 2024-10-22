@@ -34,12 +34,13 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // Validar los datos de entrada
         $validatedData = $request->validate([
             'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
 
-        // Intentar autenticar al usuario usando email y password
+        // Intentar autenticar al usuario
         if (!Auth::attempt(['email' => $validatedData['email'], 'password' => $validatedData['password']])) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas son incorrectas.'],
@@ -49,9 +50,16 @@ class AuthController extends Controller
         // Obtener el usuario autenticado
         $user = Auth::user();
 
-        // Generar un token para el usuario autenticado
+        // Verificar si el usuario autenticado es una instancia del modelo User
+        if (!$user instanceof \App\Models\User) {
+            return response()->json(['error' => 'Usuario no autenticado correctamente'], 401);
+        }
+
+        // Crear el token si la instancia es válida
         $token = $user->createToken('MyApp')->plainTextToken;
 
+        // Retornar la respuesta con el token generado
         return response()->json(['token' => $token], 200);
     }
+
 }

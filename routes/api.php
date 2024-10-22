@@ -23,4 +23,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::resource('medical', MedicalProfileController::class);
+
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::resource('medical', MedicalProfileController::class);
+// });
+
+// Route::resource('medical', MedicalProfileController::class);
+
+Route::middleware('auth:sanctum')->post('/medical', [MedicalProfileController::class, 'store']);
