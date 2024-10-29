@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MedicalProfileController;
+use App\Http\Controllers\Api\MessageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,11 +24,21 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::middleware('auth:sanctum')->group(function () {
+    // Definición de las rutas para el recurso 'medical'
+    Route::resource('medical', MedicalProfileController::class)->only([
+        'store',
+        'update',
+        'destroy'
+    ]);
+    Route::get('/user-profiles/{slug}/{id}', [MedicalProfileController::class, 'showProfile']);
+    Route::get('/user-profiles', [MedicalProfileController::class, 'profilo']); // Obtener perfiles del usuario autenticado
+});
 
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::resource('medical', MedicalProfileController::class);
-// });
+Route::get('/medical', [MedicalProfileController::class, 'index']); // Listar perfiles médicos
+Route::get('/medical/{slug}', [MedicalProfileController::class, 'show']);
 
-// Route::resource('medical', MedicalProfileController::class);
+Route::post('/message/{id}', [MessageController::class, 'store']);
 
-Route::middleware('auth:sanctum')->post('/medical', [MedicalProfileController::class, 'store']);
+
+
