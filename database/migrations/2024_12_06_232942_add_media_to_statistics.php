@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('messages', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('medical_profile_id')->constrained()->cascadeOnDelete();
-            $table->string('email_sender', 250);
-            $table->text('content');
-            $table->timestamps();
+        Schema::table('statistics', function (Blueprint $table) {
+            $table->float('media')->nullable()->after('messages_received');
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('messages');
+        Schema::table('statistics', function (Blueprint $table) {
+            $table->dropColumn('media'); 
+        });
     }
 };

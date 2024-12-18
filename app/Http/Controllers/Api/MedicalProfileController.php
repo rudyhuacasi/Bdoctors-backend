@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\MedicalProfile;
+use App\Models\Specialization;
 // use App\Http\Requests\StoreMedicalProfileRequest;
 // use App\Http\Requests\UpdateMedicalProfileRequest;
 use App\Models\User;
@@ -18,21 +19,12 @@ class MedicalProfileController extends Controller
      */
     public function index()
     {
-
-        $medical_profile = MedicalProfile::paginate(9);
+        $medical_profile = MedicalProfile::inRandomOrder()->paginate(9);
 
         return response()->json([
             'status' => 'success',
             'results' => $medical_profile,
         ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-    */
-    public function create()
-    {
-        
     }
 
     /**
@@ -46,6 +38,7 @@ class MedicalProfileController extends Controller
             'address' => 'required|string|max:255',
             'cv' => 'required|file|mimes:pdf,doc,docx,xlsx,txt|max:2048',
             'photograph' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'gender' => 'required|string|in:Maschio,Femminile',
         ]);
 
         $data = $request->all();
@@ -62,8 +55,9 @@ class MedicalProfileController extends Controller
         // dati per la tabella
         $firstName = $user->name;
         $lastName = $user->last_name;
+        $prefix = $data['gender'] === 'Maschio' ? 'dr' : 'dra';
 
-        $medicalProfile->slug = 'dr-' . Str::slug($firstName . '-' . $lastName);        
+        $medicalProfile->slug = $prefix . '-' . Str::slug($firstName . '-' . $lastName);        
         $medicalProfile->phone = $data['phone'];
         $medicalProfile->address = $data['address'];
 
@@ -104,14 +98,6 @@ class MedicalProfileController extends Controller
             ], 404);
         }
     }
-
-    // /**
-    //  * Show the form for editing the specified resource.
-    //  */
-    // public function edit(MedicalProfile $medicalProfile)
-    // {
-
-    // }
 
     /**
      * Update the specified resource in storage.
@@ -171,59 +157,6 @@ class MedicalProfileController extends Controller
         }    
     }
 
-    // public function update(Request $request, MedicalProfile $medicalProfile, $id)
-    // {
-    //     // Validación de los datos que se actualizarán
-    //     $data =  $request->validate([
-    //         'phone' => 'sometimes|string|max:15',
-    //         'address' => 'sometimes|string|max:255',
-    //         'cv' => 'sometimes|file|mimes:pdf,doc,docx,xlsx,txt|max:2048',
-    //         'photograph' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
-    //     ]);
-    //     // $medicalProfile = MedicalProfile::findOrFail($id)
-    //     // // Verificación de ID en la solicitud
-    //     // $profileId = $request->id ?? $request->route('id'); // Usa el ID desde el cuerpo o la URL
-
-    //     // if (!$profileId) {
-    //     //     return response()->json(['error' => 'ID del perfil médico no proporcionado'], 400);
-    //     // }
-
-    //     // // Obtiene el perfil médico existente
-    //     // $medicalProfile = MedicalProfile::find($profileId);
-
-    //     // if (!$medicalProfile) {
-    //     //     return response()->json(['error' => 'Perfil médico no encontrado'], 404);
-    //     // }
-    //     $medicalProfile = MedicalProfile::findOrFail($id);
-    //     // Actualiza los campos del perfil médico
-    //     $medicalProfile->phone = $data['phone'];
-    //     $medicalProfile->address = $data['address'];
-
-    //     // Manejo de archivo CV
-    //     if ($request->hasFile('cv')) {
-
-    //         $cv_path = Storage::put('upload', $request->file('cv'));
-    //         $data['cv'] = $cv_path;
-    //         // Almacena el archivo y guarda la ruta en el modelo
-    //         // $medicalProfile->cv = $request->file('cv')->store('cvs', 'public');
-    //     }
-
-    //     // Manejo de archivo de fotografía
-    //     if ($request->hasFile('photograph')) {
-
-    //         $photograph_path = Storage::put('upload', $request->file('photograph'));
-    //         $data['photograph'] = $photograph_path;
-    //         // Almacena el archivo y guarda la ruta en el modelo
-    //         // $medicalProfile->photograph = $request->file('photograph')->store('photographs', 'public');
-    //     }
-
-    //     // Guarda los cambios
-    //     $medicalProfile->save();
-        
-    //     return response()->json(['status' => 'success', 'message' => 'Perfil médico actualizado exitosamente.']);
-    //     dd($request->all());
-    // }
-
     // /**
     //  * Remove the specified resource from storage.
     //  */
@@ -241,13 +174,28 @@ class MedicalProfileController extends Controller
 
     public function profilo()
     {
-        // Obtener los perfiles médicos del usuario autenticado
+        // Obtener el ID del usuario autenticado
         $userId = auth()->id();
-        $profiles = MedicalProfile::where('user_id', $userId)->paginate(100);
+
+        // Perfiles con payments
+        $profilesWithPayments = MedicalProfile::where('user_id', $userId)
+            ->whereHas('payments')       // Solo perfiles con pagos
+            ->with(['payments.sponsorship']) // Cargar relaciones de payments y sponsorship
+            ->inRandomOrder()             // Orden aleatorio dentro de esta categoría
+            ->get();                      // Obtener todos los resultados
+
+        // Perfiles sin payments
+        $profilesWithoutPayments = MedicalProfile::where('user_id', $userId)
+            ->whereDoesntHave('payments') // Solo perfiles sin pagos
+            ->inRandomOrder()              // Orden aleatorio dentro de esta categoría
+            ->get();                      // Obtener todos los resultados
+
+        // Combinar ambos conjuntos
+        $combinedProfiles = $profilesWithPayments->merge($profilesWithoutPayments);
 
         return response()->json([
             'status' => 'success',
-            'results' => $profiles,
+            'results' => $combinedProfiles, // Devolver todos los perfiles combinados
         ]);
     }
     public function showProfile( $slug, $id)
@@ -255,7 +203,7 @@ class MedicalProfileController extends Controller
         // Obtener los perfiles médicos del usuario autenticado
         $medical_profile = MedicalProfile::where('slug', $slug)
             ->where('id', $id)
-            ->with('reviews', 'user', 'medicalspecializations', 'payments', 'messages', 'statistics')
+            ->with('reviews', 'user', 'medicalspecializations', 'payments', 'messages','statistics')
             ->first();
 
         if ($medical_profile) {
@@ -271,4 +219,42 @@ class MedicalProfileController extends Controller
         } 
     }
 
+    public function search(Request $request)
+    {
+        $query = MedicalProfile::query()
+            ->with(['specializations', 'reviews', 'statistics']);
+
+        // Filtrar por especialización
+        if ($request->filled('specialization')) {
+            $query->whereHas('specializations', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->input('specialization') . '%');
+            });
+        }
+
+        // Filtrar por calificación media mínima
+        if ($request->filled('min_rating')) {
+            $query->whereHas('statistics', function ($q) use ($request) {
+                $q->where('average_rating', '>=', $request->input('min_rating'));
+            });
+        }
+
+        // Filtrar por número mínimo de reseñas
+        if ($request->filled('min_reviews')) {
+            $query->whereHas('statistics', function ($q) use ($request) {
+                $q->where('reviews_received', '>=', $request->input('min_reviews'));
+            });
+        }
+
+        // Obtener los resultados
+        $medicalProfiles = $query->get();
+
+        // Retornar los resultados como JSON
+        return response()->json($medicalProfiles);
+    }
+    public function searchSpecializations(Request $request)
+    {
+        $term = $request->query('term');
+        $specializations = Specialization::where('name', 'LIKE', "%{$term}%")->get();
+        return response()->json($specializations);
+    }
 }

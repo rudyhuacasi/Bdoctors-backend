@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reviews', function (Blueprint $table) {
+        Schema::create('profile_performances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('medical_profile_id')->constrained()->cascadeOnDelete();
-            $table->string('full_name');
-            $table->string('email');
-            $table->text('comment');
-            $table->integer('valuation');
-            $table->dateTime('creation_date');
+            $table->foreignId('medicine_performance_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }
@@ -28,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reviews');
+        Schema::dropIfExists('profile_performances');
     }
 };

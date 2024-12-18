@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MedicalProfileController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\SponsorshipController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +33,10 @@ Route::middleware('auth:sanctum')->group(function () {
         'update',
         'destroy'
     ]);
+
+    Route::get('/sponsors', [SponsorshipController::class, 'index']); // Obtener perfiles del usuario autenticado
+    Route::post('/payments', [SponsorshipController::class, 'processPayment']);
+
     Route::get('/user-profiles/{slug}/{id}', [MedicalProfileController::class, 'showProfile']);
     Route::get('/user-profiles', [MedicalProfileController::class, 'profilo']); // Obtener perfiles del usuario autenticado
 });
@@ -41,4 +47,14 @@ Route::get('/medical/{slug}', [MedicalProfileController::class, 'show']);
 Route::post('/message/{id}', [MessageController::class, 'store']);
 
 
+Route::post('/review/{id}', [ReviewController::class, 'store']);
 
+Route::get('/generate-token', [SponsorshipController::class, 'generateToken']);
+Route::post('/process-payment', [SponsorshipController::class, 'processPayment']);
+Route::get('/sponsorships', [SponsorshipController::class, 'index']);
+Route::get('/sponsorships-user', [SponsorshipController::class, 'indexUser']);
+
+
+Route::get('/medical-profiles/search', [MedicalProfileController::class, 'search']);
+
+Route::get('/specializations/search', [MedicalProfileController::class, 'searchSpecializations']);
