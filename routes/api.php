@@ -42,7 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('/medical', [MedicalProfileController::class, 'index']); // Listar perfiles médicos
-Route::get('/medical/{slug}', [MedicalProfileController::class, 'show']);
+Route::get('/medical/{slug}/{id}', [MedicalProfileController::class, 'show']);
 
 Route::post('/message/{id}', [MessageController::class, 'store']);
 
@@ -58,3 +58,5 @@ Route::get('/sponsorships-user', [SponsorshipController::class, 'indexUser']);
 Route::get('/medical-profiles/search', [MedicalProfileController::class, 'search']);
 
 Route::get('/specializations/search', [MedicalProfileController::class, 'searchSpecializations']);
+
+Route::get('/medicine-performances', [MedicalProfileController::class, 'indexPerformance']);
