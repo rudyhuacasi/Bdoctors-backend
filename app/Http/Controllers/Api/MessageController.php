@@ -33,11 +33,10 @@ class MessageController extends Controller
      */
     public function store(Request $request, Message $message, $id)
     {
-        // Validar los datos entrantes
         $validatedData = $request->validate([
             'email_sender' => 'required|email',
             'content' => 'required|string|max:500',
-            'medical_profile_id' => 'required|exists:medical_profiles,id',  // Validar que el perfil médico existe
+            'medical_profile_id' => 'required|exists:medical_profiles,id',
         ]);
         $medical_profile = MedicalProfile::where('id', $id)->first();
 
@@ -48,10 +47,8 @@ class MessageController extends Controller
         $message->email_sender = $validatedData['email_sender'];
         $message->content = $validatedData['content'];
         $message->medical_profile_id = $medical_profile->id;
-        $message->data_sent = now();
         $message->save();
 
-        // Responder con un mensaje de éxito
         return response()->json(['message' => 'Mensaje guardado exitosamente'], 201);
     
     }

@@ -6,14 +6,14 @@ use App\Models\Sponsorship;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\MedicalProfile;
+use App\Models\Payment;
 use Braintree\Gateway;
+use Carbon\Carbon;
 
 class SponsorshipController extends Controller
 {
-    // Método para generar el token de cliente
     public function generateToken()
     {
-        // Configura la conexión con Braintree usando las credenciales de tu archivo .env
         $gateway = new Gateway([
             'environment' => env('BRAINTREE_ENV'),
             'merchantId' => env('BRAINTREE_MERCHANT_ID'),
@@ -21,10 +21,8 @@ class SponsorshipController extends Controller
             'privateKey' => env('BRAINTREE_PRIVATE_KEY')
         ]);
 
-        // Genera el token de cliente para la sesión
         $clientToken = $gateway->clientToken()->generate();
 
-        // Retorna el token de cliente en un JSON
         return response()->json([
             'clientToken' => $clientToken
         ]);
@@ -32,7 +30,6 @@ class SponsorshipController extends Controller
 
     public function processPayment(Request $request)
     {
-        // Validar los datos recibidos
         $request->validate([
             'package_id' => 'required|integer',
             'payment_method_nonce' => 'required|string',
@@ -46,15 +43,12 @@ class SponsorshipController extends Controller
             'privateKey' => env('BRAINTREE_PRIVATE_KEY')
         ]);
 
-        // Buscar el paquete en la base de datos
         $sponsorship = Sponsorship::find($request->package_id);
 
-        // Verificar si el paquete existe
         if (!$sponsorship) {
-            return response()->json(['error' => 'Paquete inválido'], 400);
+            return response()->json(['error' => 'no hai scelto un pacco '], 400);
         }
 
-        // Procesar la transacción con el precio del paquete desde la base de datos
         $result = $gateway->transaction()->sale([
             'amount' => $sponsorship->price,
             'paymentMethodNonce' => $request->payment_method_nonce,
@@ -64,11 +58,9 @@ class SponsorshipController extends Controller
         ]);
 
         if ($result->success) {
-            // Calcular las fechas de inicio y fin del paquete
             $startDate = now();
             $endDate = $startDate->copy()->addHours($this->getDurationInHours($sponsorship->package));
 
-            // Crear un nuevo registro en la tabla payments
             \App\Models\Payment::create([
                 'medical_profile_id' => $request->medical_profile_id,
                 'sponsorship_id' => $sponsorship->id,
@@ -118,13 +110,38 @@ class SponsorshipController extends Controller
 
     public function indexUser()
     {
-        // Filtrar solo los perfiles con patrocinio
-        $sponsoredProfiles = MedicalProfile::whereHas('payments')->get();
+        $now = now();
+
+        $payments = Payment::where('start_date', '<=', $now)
+        ->where('end_date', '>=', $now)
+        ->with('medicalProfile') 
+        ->get();
+
+        $groupedByProfile = $payments->groupBy('medical_profile_id');
+
+        $results = $groupedByProfile->map(function ($sponsorships, $medicalProfileId) {
+            $totalActiveHours = 0;
+
+            foreach ($sponsorships as $sponsorship) {
+                $start = \Carbon\Carbon::parse($sponsorship->start_date);
+                $end = \Carbon\Carbon::parse($sponsorship->end_date);
+
+                $totalActiveHours += $start->diffInHours($end);
+            }
+
+            return [
+                'medical_profile' => $sponsorships->first()->medicalProfile,
+                'total_active_hours' => $totalActiveHours,
+            ];
+        })
+        ->filter(function ($result) {
+            return $result['total_active_hours'] > 0;
+        })
+        ->values();
 
         return response()->json([
-            'status' => 'success',
-            'results' => $sponsoredProfiles,
-        ]);
+            'results' => $results
+        ], 200);
     }
     
     

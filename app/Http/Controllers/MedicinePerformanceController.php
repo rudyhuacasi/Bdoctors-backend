@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MedicalSpecialization;
-use App\Http\Requests\StoreMedicalSpecializationRequest;
-use App\Http\Requests\UpdateMedicalSpecializationRequest;
+use App\Models\MedicinePerformance;
+use App\Http\Requests\StoreMedicinePerformanceRequest;
+use App\Http\Requests\UpdateMedicinePerformanceRequest;
 
-class MedicalSpecializationController extends Controller
+class MedicinePerformanceController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,7 +27,7 @@ class MedicalSpecializationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMedicalSpecializationRequest $request)
+    public function store(StoreMedicinePerformanceRequest $request)
     {
         //
     }
@@ -35,7 +35,7 @@ class MedicalSpecializationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(MedicalSpecialization $medicalSpecialization)
+    public function show(MedicinePerformance $medicinePerformance)
     {
         //
     }
@@ -43,7 +43,7 @@ class MedicalSpecializationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(MedicalSpecialization $medicalSpecialization)
+    public function edit(MedicinePerformance $medicinePerformance)
     {
         //
     }
@@ -51,7 +51,7 @@ class MedicalSpecializationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMedicalSpecializationRequest $request, MedicalSpecialization $medicalSpecialization)
+    public function update( MedicinePerformance $medicinePerformance)
     {
         //
     }
@@ -59,7 +59,7 @@ class MedicalSpecializationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(MedicalSpecialization $medicalSpecialization)
+    public function destroy(MedicinePerformance $medicinePerformance)
     {
         //
     }

@@ -35,7 +35,7 @@ class ReviewController extends Controller
         // validazione
         $validatedData = $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => 'sometimes|email|unique:reviews,email',
+            'email' => 'required|email',
             'comment' => 'required|string|max:1000',
             'valuation' => 'required|integer|min:1|max:5',
             'medical_profile_id' => 'required|exists:medical_profiles,id'
@@ -44,7 +44,7 @@ class ReviewController extends Controller
         $medical_profile = MedicalProfile::where('id', $id)->first();
 
         if (!$medical_profile) {
-            return response()->json(['error' => 'Apartamento no encontrado.'], 404);
+            return response()->json(['error' => 'non trovato.'], 404);
         }
 
         $review->medical_profile_id = $medical_profile->id;

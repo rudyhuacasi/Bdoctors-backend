@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\MedicalProfile;
+use App\Models\MedicinePerformance;
 use App\Models\Specialization;
 // use App\Http\Requests\StoreMedicalProfileRequest;
 // use App\Http\Requests\UpdateMedicalProfileRequest;
@@ -39,15 +40,15 @@ class MedicalProfileController extends Controller
             'cv' => 'required|file|mimes:pdf,doc,docx,xlsx,txt|max:2048',
             'photograph' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'gender' => 'required|string|in:Maschio,Femminile',
+            'specialization_id' => 'required|exists:specializations,id',
+            'performances' => 'required|array',  
+            'performances.*' => 'integer|exists:medicine_performances,id'       
         ]);
 
         $data = $request->all();
         $medicalProfile = new MedicalProfile();
 
         $user = User::find(auth()->id());
-        // if (!$user) {
-        //     return response()->json(['error' => 'Usuario no encontrado'], 404);
-        // }
 
         // ID dell'usuario
         $medicalProfile->user_id = $user->id;
@@ -59,6 +60,7 @@ class MedicalProfileController extends Controller
 
         $medicalProfile->slug = $prefix . '-' . Str::slug($firstName . '-' . $lastName);        
         $medicalProfile->phone = $data['phone'];
+        $medicalProfile->specialization_id = $data['specialization_id'];
         $medicalProfile->address = $data['address'];
 
         if ($request->hasFile('cv')) {
@@ -73,17 +75,36 @@ class MedicalProfileController extends Controller
 
         $medicalProfile->save();
 
-        return response()->json(['status' => 'success', 'message' => 'Perfil médico creado exitosamente.']);
+        $medicalProfile->performances()->sync($request->performances);
+
+        return response()->json(['status' => 'success', 'message' => 'Profilo medico fatto.']);
+    }
+
+    public function indexPerformance()
+    {
+        try {
+            $performances = MedicinePerformance::all();
+            return response()->json($performances, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener las prestaciones'], 500);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show( $slug)
+    public function show( $slug, $id)
     {
         //? dettaglio con relazione services:
         $medical_profile = MedicalProfile::where('slug', $slug)
-            ->with('reviews', 'user', 'medicalspecializations', 'payments', 'messages', 'statistics')
+            ->where('id', $id)
+            ->with('reviews',
+            'user',
+            'payments',
+            'messages',
+            'statistics',
+            'specializations',
+            'profilePerformances.medicinePerformance')
             ->first();
 
         if ($medical_profile) {
@@ -104,20 +125,22 @@ class MedicalProfileController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validación de los datos que se actualizarán
+        // Validazione
         $request->validate([
             'phone' => 'sometimes|string|max:15',
             'address' => 'sometimes|string|max:255',
             'cv' => 'sometimes|string',
             'photograph' => 'sometimes|string',
+            'specialization_id' => 'sometimes|exists:specializations,id',
+            'performances' => 'sometimes|array',
+            'performances.*' => 'integer|exists:medicine_performances,id',
         ]);
 
-        // Obtener el perfil médico existente
         $medicalProfile = MedicalProfile::findOrFail($id);
         if (!$medicalProfile) {
-             return response()->json(['error' => 'Usuario no encontrado'], 404);
+             return response()->json(['error' => 'Usuario non trovato'], 404);
         }
-        // Actualiza solo los campos que se enviaron en la solicitud
+
         if ($request->has('phone')) {
             $medicalProfile->phone = $request->input('phone');
         }
@@ -126,35 +149,36 @@ class MedicalProfileController extends Controller
             $medicalProfile->address = $request->input('address');
         }
 
-        // Manejo del archivo CV si se envió como base64
+        if ($request->has('specialization_id')) {
+            $medicalProfile->specialization_id = $request->input('specialization_id');
+        }
+
         if ($request->has('cv')) {
             $cvData = $request->input('cv');
-            // Aquí deberías procesar la cadena base64
-            $filePath = 'cvs/' . uniqid() . '.pdf'; // Cambia la extensión según el tipo de archivo
-            Storage::disk('public')->put($filePath, base64_decode($cvData)); // Almacena el archivo
+
+            $filePath = 'cvs/' . uniqid() . '.pdf';
+            Storage::disk('public')->put($filePath, base64_decode($cvData));
             $medicalProfile->cv = $filePath;
         }
 
         if ($request->has('photograph')) {
             $photoData = $request->input('photograph');
-            // Aquí deberías procesar la cadena base64
-            $photoPath = 'photographs/' . uniqid() . '.png'; // Cambia la extensión según el tipo de imagen
-            Storage::disk('public')->put($photoPath, base64_decode($photoData)); // Almacena el archivo
+            $photoPath = 'photographs/' . uniqid() . '.png';
+            Storage::disk('public')->put($photoPath, base64_decode($photoData));
             $medicalProfile->photograph = $photoPath;
         }
+        $medicalProfile->save();
 
-         if ($medicalProfile->save()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Perfil médico actualizado exitosamente.',
-                'updated_data' => $medicalProfile,
-            ]);
-        } else {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error al guardar los cambios en la base de datos.'
-            ], 500);
-        }    
+        if ($request->has('performances')) {
+            $medicalProfile->performances()->sync($request->performances);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Profilo medico aggiornato',
+            'results' => $medicalProfile->load('performances', 'specializations') 
+        ]);
+        
     }
 
     // /**
@@ -166,44 +190,45 @@ class MedicalProfileController extends Controller
             $medicalProfile = MedicalProfile::findOrFail($id);
             $medicalProfile->delete();
 
-            return response()->json(['status' => 'success', 'message' => 'Perfil médico eliminado correctamente.']);
+            return response()->json(['status' => 'success', 'message' => 'Profilo medico cancellato.']);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => 'Error al eliminar el perfil médico.'], 500);
+            return response()->json(['status' => 'error', 'message' => 'Errore a cancellare il profilo.'], 500);
         }
     }
 
     public function profilo()
     {
-        // Obtener el ID del usuario autenticado
         $userId = auth()->id();
 
-        // Perfiles con payments
         $profilesWithPayments = MedicalProfile::where('user_id', $userId)
-            ->whereHas('payments')       // Solo perfiles con pagos
-            ->with(['payments.sponsorship']) // Cargar relaciones de payments y sponsorship
-            ->inRandomOrder()             // Orden aleatorio dentro de esta categoría
-            ->get();                      // Obtener todos los resultados
+            ->whereHas('payments')       
+            ->with(['payments.sponsorship']) 
+            ->inRandomOrder()             
+            ->get();                      
 
-        // Perfiles sin payments
         $profilesWithoutPayments = MedicalProfile::where('user_id', $userId)
-            ->whereDoesntHave('payments') // Solo perfiles sin pagos
-            ->inRandomOrder()              // Orden aleatorio dentro de esta categoría
-            ->get();                      // Obtener todos los resultados
+            ->whereDoesntHave('payments') 
+            ->inRandomOrder()             
+            ->get();                      
 
-        // Combinar ambos conjuntos
         $combinedProfiles = $profilesWithPayments->merge($profilesWithoutPayments);
 
         return response()->json([
             'status' => 'success',
-            'results' => $combinedProfiles, // Devolver todos los perfiles combinados
+            'results' => $combinedProfiles, 
         ]);
     }
     public function showProfile( $slug, $id)
     {
-        // Obtener los perfiles médicos del usuario autenticado
         $medical_profile = MedicalProfile::where('slug', $slug)
             ->where('id', $id)
-            ->with('reviews', 'user', 'medicalspecializations', 'payments', 'messages','statistics')
+            ->with('reviews',
+            'user',
+            'payments',
+            'messages',
+            'statistics',
+            'specializations',
+            'profilePerformances.medicinePerformance')
             ->first();
 
         if ($medical_profile) {
@@ -215,7 +240,7 @@ class MedicalProfileController extends Controller
             return response()->json([
                 'status' => 'failed',
                 'results' => null
-            ], 404); // Añadir el manejo de error
+            ], 404); 
         } 
     }
 
@@ -224,31 +249,26 @@ class MedicalProfileController extends Controller
         $query = MedicalProfile::query()
             ->with(['specializations', 'reviews', 'statistics']);
 
-        // Filtrar por especialización
         if ($request->filled('specialization')) {
             $query->whereHas('specializations', function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->input('specialization') . '%');
             });
         }
 
-        // Filtrar por calificación media mínima
         if ($request->filled('min_rating')) {
             $query->whereHas('statistics', function ($q) use ($request) {
-                $q->where('average_rating', '>=', $request->input('min_rating'));
+                $q->where('media', '>=', $request->input('min_rating'));
             });
         }
 
-        // Filtrar por número mínimo de reseñas
         if ($request->filled('min_reviews')) {
             $query->whereHas('statistics', function ($q) use ($request) {
                 $q->where('reviews_received', '>=', $request->input('min_reviews'));
             });
         }
 
-        // Obtener los resultados
         $medicalProfiles = $query->get();
 
-        // Retornar los resultados como JSON
         return response()->json($medicalProfiles);
     }
     public function searchSpecializations(Request $request)
