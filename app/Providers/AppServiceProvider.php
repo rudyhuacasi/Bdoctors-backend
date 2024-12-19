@@ -23,7 +23,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Registrar los observers
         Message::observe(MessageObserver::class);
         Review::observe(ReviewObserver::class);
     }

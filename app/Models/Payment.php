@@ -8,9 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 class Payment extends Model
 {
     use HasFactory;
+    
+    protected $fillable = [
+        'medical_profile_id',
+        'sponsorship_id',
+        'start_date',
+        'end_date',
+        'state',
+    ];
 
     // relazione many to one con MedicalProfile
-    public function MedicalProfile()
+    public function medicalProfile()
     {
         return $this->belongsTo(MedicalProfile::class);
     }

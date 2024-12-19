@@ -9,9 +9,10 @@ class Specialization extends Model
 {
     use HasFactory;
 
-    // relazione one to many con MedicalSpecialization
-    public function MedicalSpecialization()
+    
+    public function medicalProfiles()
     {
-        return $this->hasMany(MedicalSpecialization::class);
+        return $this->hasMany(MedicalProfile::class, 'medical_specializations', 'specialization_id', 'medical_profile_id');
     }
 }
+

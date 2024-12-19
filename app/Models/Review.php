@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Review extends Model
 {
     use HasFactory;
+    
+    protected $fillable = ['medical_profile_id', 'rating', 'content'];
 
     // relazione many to one con user
     public function User()

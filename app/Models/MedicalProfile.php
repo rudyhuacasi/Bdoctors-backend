@@ -21,11 +21,6 @@ class MedicalProfile extends Model
         return $this->hasMany(Review::class);
     }
 
-    // relazione one to many con MedicalSpecialization
-    public function medicalspecializations()
-    {
-        return $this->hasMany(MedicalSpecialization::class);
-    }
 
     // relazione one to many con MedicalProfile
     public function payments()
@@ -45,4 +40,22 @@ class MedicalProfile extends Model
         return $this->hasMany(Statistic::class);
     }
 
+    public function specializations()
+    {
+        return $this->belongsTo(Specialization::class, 'specialization_id');
+    }
+
+    public function performances()
+    {
+        return $this->belongsToMany(MedicinePerformance::class, 'profile_performances', 'medical_profile_id', 'medicine_performance_id');
+    }
+
+    public function profilePerformances()
+    {
+        return $this->hasMany(ProfilePerformance::class);
+    }
+    public function medicinePerformance()
+    {
+        return $this->belongsTo(MedicinePerformance::class, 'medicine_performance_id');
+    }
 }
