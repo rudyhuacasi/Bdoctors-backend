@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
+use App\Models\MedicinePerformance;
 use App\Models\Message;
+use App\Models\ProfilePerformance;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -23,11 +25,12 @@ class DatabaseSeeder extends Seeder
 
         // fare la chiamata  a tutte le seeder
         $this->call([
-            MedicalProfileSeeder::class,
             SpecializationSeeder::class,  
-            MedicalSpecializationSeeder::class,
+            MedicalProfileSeeder::class,
             MessageSeeder::class,
-            SponsorshipSeeder::class,    
+            SponsorshipSeeder::class,
+            MedicinePerformance::class,
+            ProfilePerformance::class,  
         ]);
     }
 }

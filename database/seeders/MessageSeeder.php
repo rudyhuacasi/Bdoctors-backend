@@ -32,7 +32,6 @@ class MessageSeeder extends Seeder
             $new_message->medical_profile_id = MedicalProfile::inRandomOrder()->first()->id;
             $new_message->email_sender = $faker->email();
             $new_message->content = $faker->text(200);
-            $new_message->data_sent = $faker->dateTime();
 
             $new_message->save();
         }

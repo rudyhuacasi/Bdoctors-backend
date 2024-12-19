@@ -3,11 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\MedicalProfile;
+use App\Models\Specialization;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
-use Faker\Factory as Faker;
 
 class MedicalProfileSeeder extends Seeder
 {
@@ -28,6 +27,7 @@ class MedicalProfileSeeder extends Seeder
             $medical_profile = new MedicalProfile();
 
             $medical_profile->user_id = 10; 
+            $medical_profile->specialization_id = Specialization::inRandomOrder()->first()->id;
             $medical_profile->slug = $profile['slug']; 
             $medical_profile->cv = $profile['cv']; 
             $medical_profile->photograph = $profile['photograph']; 
