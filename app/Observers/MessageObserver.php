@@ -15,7 +15,10 @@ class MessageObserver
     {
         $medicalProfileId = $message->medical_profile_id;
 
-        $statistic = Statistic::where('medical_profile_id', $medicalProfileId)->first();
+        $statistic = Statistic::firstOrCreate(
+            ['medical_profile_id' => $medicalProfileId],
+            ['update_date' => now(), 'messages_received' => 0]
+        );
 
 
         $statistic->messages_received += 1;

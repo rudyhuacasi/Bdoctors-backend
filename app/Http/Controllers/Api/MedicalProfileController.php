@@ -20,7 +20,7 @@ class MedicalProfileController extends Controller
      */
     public function index()
     {
-        $medical_profile = MedicalProfile::inRandomOrder()->paginate(9);
+        $medical_profile = MedicalProfile::orderBy('id', 'asc')->paginate(9);
 
         return response()->json([
             'status' => 'success',
